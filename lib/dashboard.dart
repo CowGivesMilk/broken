@@ -163,10 +163,10 @@ class _DashboardState extends State<Dashboard> {
                         parseCSV(allNodes, allBuses);
                         //Node start = Node(name: 'start bus stop', latitude: currentLocation!.latitude, longitude: currentLocation!.longitude);
                         //Node end = Node(name: 'End Bus stop', latitude: finalDestination!.latitude, longitude: finalDestination!.longitude);
-                        //Node start = Node(name: 'Aarubari', latitude: 27.7312633, longitude: 85.3757724);
-                        //Node end = Node(name: 'Machha Pokhari', latitude: 27.7353111, longitude: 85.3058395);
-                        //start = allNodes[start.toString()]?? findNearestNode(start.latitude, start.latitude, allNodes);
-                        //end = allNodes[end.toString()]?? findNearestNode(end.latitude, end.latitude, allNodes);
+                        Node start = Node(name: 'Aarubari', latitude: 27.7312633, longitude: 85.3757724);
+                        Node end = Node(name: 'Machha Pokhari', latitude: 27.7353111, longitude: 85.3058395);
+                        start = allNodes[start.toString()]?? findNearestNode(start.latitude, start.latitude, allNodes);
+                        end = allNodes[end.toString()]?? findNearestNode(end.latitude, end.latitude, allNodes);
 
                         //Node start = Node(name: 'start bus stop', latitude: currentLocation!.latitude, longitude: currentLocation!.longitude);
                         //Node end = Node(name: 'End Bus stop', latitude: finalDestination!.latitude, longitude: finalDestination!.longitude);
@@ -174,18 +174,20 @@ class _DashboardState extends State<Dashboard> {
                         //end = findNearestNode(end.latitude, end.longitude, allNodes);
                         //List<dynamic> path = findPath(start, end, allNodes, allBuses);
                         setState(() {
-                          /*
+                          
                             final path = findPath(start, end, mapToSet(allNodes));
                             print('Length of path: ${path.length}');
                             polylinesArray = pathToPolyLine(path);
                             print('Length of polylinesArray: ${polylinesArray.length}');
-                            */
+          
+                            /*
                             for(var bus in allBuses) {
                               for(var node in bus.nodes) {
                                 polylinesArray.add(LatLng(node.latitude, node.longitude));
                               }
                               break;
                             }
+                            */
                         });
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
