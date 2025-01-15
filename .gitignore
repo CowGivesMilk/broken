@@ -1,0 +1,61 @@
+# Flutter/Dart specific
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+/build/
+.flutter-plugins-dependencies
+
+# Android specific
+android/.gradle/
+android/app/build/
+android/local.properties
+android/.idea/
+
+# iOS specific
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/.idea/
+ios/Runner.xcworkspace/
+
+# macOS specific
+macos/Flutter/Flutter.framework/
+macos/Flutter/Flutter.podspec
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/.symlinks/
+macos/.idea/
+macos/Pods/
+macos/Runner.xcworkspace/
+
+# Web specific
+.web/
+
+# Windows specific
+windows/flutter/ephemeral/
+windows/.idea/
+
+# Linux specific
+linux/flutter/ephemeral/
+linux/.idea/
+
+# IntelliJ/Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Others
+.DS_Store
+Thumbs.db
+*.log
+.flutter-plugins
+
+
+# API 
+get_url.dart

@@ -1,0 +1,45 @@
+name: sahayatri
+description: "A new Flutter project."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_map: ^7.0.2 # Updated to the latest version of flutter_map
+  latlong2: ^0.9.1 # Latest version compatible with flutter_map
+  geolocator: ^13.0.2 # Latest version of geolocator
+  permission_handler: ^11.3.1 # Latest version for permission handling
+  cupertino_icons: ^1.0.8
+  flutter_typeahead: ^4.0.0
+  csv: ^5.0.0
+  http: ^1.2.2
+  excel: ^4.0.6
+  open_route_service: ^1.2.6
+  syncfusion_flutter_maps: ^28.1.38
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: "^0.14.1"  # For generating app icons
+
+flutter:
+  uses-material-design: true
+
+  # Add assets for the app
+  assets:
+    - assets/map.png
+    - assets/bus.png
+    - assets/Routes.csv 
+    - assets/Bus.csv
+
+flutter_icons:
+  android: true           # Set to true to generate icons for Android
+  ios: false              # Set to false if you don't need iOS icons
+  image_path: "assets/icon/final.png"  # Path to your app icon image
