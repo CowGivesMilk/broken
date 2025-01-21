@@ -41,7 +41,7 @@ class Node {
   }
 
   String toFullString() {
-    return 'name: $name latitude: $latitude longitude: $latitude\t';
+    return 'name: $name latitude: $latitude longitude: $longitude\t';
   }
 
   void latLong(double? lat, double? long) {
@@ -72,7 +72,7 @@ String edgeStr(double lat1, double long1, double lat2, double long2) {
 }
 
 Node findNearestNode(double lat, double long, Map<String, Node> allNodes) {
-  double minDistance = haversine(lat, long, 27.7312633, 85.3757724);
+  double minDistance = double.infinity;
   Node res = Node(name: 'Aarubari', latitude: 27.7312633, longitude: 85.3757724);
 
   allNodes.forEach((key, value) {
@@ -98,7 +98,8 @@ Set<Node> mapToSet(Map<String, Node> map) {
 void parseCSV(Map<String, Node> allNodes, Set<Bus> allBuses) {
   print('Parsing CSV File');
   List<List<String>> grid = [];
-  final filePath = 'assets/output_file.csv';
+  //final filePath = 'assets/output_file.csv';
+  final filePath = 'assets/outputFile2.csv';
   final lines = File(filePath).readAsLinesSync();
   for(var line in lines) {
     final values = line.split(';');
@@ -186,7 +187,7 @@ void printPath(List<dynamic> path) {
     if(item.runtimeType == Node) {
       print(item.toFullString());
     }else {
-      print(item);
+      print(item.name);
     }
   }
 }
@@ -227,55 +228,71 @@ List<dynamic> findPath(Node start, Node end, Set<Node> allNodes) {
   // If no path is found, return an empty list.
   return [];
 }
-
-
-/*
-List<dynamic> findPath(Node start, Node end, Set<Node> allNodes, Map<String, Node> allNodesMap) {
-  print('Running findPath');
-  Map<Node, List<dynamic>> visited = {}; // To store visited nodes with paths.
-  Queue<List<dynamic>> queue = Queue(); // Queue for BFS traversal.
-  /*
-  bool walkAtStart = false, walkAtEnd = false;
-  if(!allNodes.contains(start)) {
-    walkAtStart = true;
-    start = findNearestNode(start.latitude, start.longitude, allNodesMap);
-  }
-  if(!allNodes.contains(end)) {
-    walkAtEnd = true;
-    end = findNearestNode(end.latitude, end.latitude, allNodesMap);
-  }
-  */
-  // Initialize the queue with the start node.
-  queue.add([start]);
-  visited[start] = [start];
-
-  while (queue.isNotEmpty) {
-    List<dynamic> path = queue.removeFirst();
-    Node currentNode = path.last;
-
-    // If we reach the end node, return the path.
-    if (currentNode == end) {
-      return path;
-    }
-
-    // Iterate through all buses connected to the current node.
-    for (Bus bus in currentNode.buses) {
-      for (Node neighbor in bus.nodes) {
-        if (!visited.containsKey(neighbor)) {
-          // Create a new path including the bus and the neighbor.
-          List<dynamic> newPath = List.from(path)
-            ..add(bus)
-            ..add(neighbor);
-
-          // Mark the neighbor as visited and add it to the queue.
-          visited[neighbor] = newPath;
-          queue.add(newPath);
-        }
-      }
-    }
-  }
-
-  // If no path is found, return an empty list.
-  return [];
+double haversineNode(Node a, Node b) {
+  return haversine(a.latitude, a.longitude, b.latitude, b.longitude);
 }
-*/
+List<LatLng> pathToSmallPolyLine(List<dynamic> path) {
+  List<LatLng> polylineArray = [];
+  for(var item in path) {
+    if(item.runtimeType == Node) {
+      polylineArray.add(LatLng(item.latitude, item.longitude));
+    }
+  }
+  return polylineArray;
+}
+List<int> calculateFare(List<dynamic> path) {
+  List<int> fares = [];
+  int totalFare = 0;
+  for(int i = 1; i < path.length - 1; i++) {
+    double kmDist = haversineNode(path[i-1], path[i+1]) / 1000;
+    double d = 5;
+    int price = 20;
+    while(price < 40 && d < kmDist) {
+      price += 5;
+      d += 5;
+    }
+    fares.add(price);
+    totalFare += price;
+  }
+  fares.add(totalFare);
+  return fares;
+}
+Future<List<LatLng>> getDrivingRoute(LatLng start, LatLng end) async {
+  final url = Uri.parse(
+    'https://router.project-osrm.org/route/v1/bus/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson',
+  );
+
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    final List coordinates = data['routes'][0]['geometry']['coordinates'];
+
+    // Convert coordinates to LatLng
+    return coordinates.map((coord) {
+      return LatLng(coord[1], coord[0]);
+    }).toList();
+  } else {
+    throw Exception('Failed to fetch route');
+  }
+}
+Future<List<LatLng>> osmPolylines(List<dynamic> path) async {
+  // List of futures for route segments
+  List<Future<List<LatLng>>> futures = [];
+  
+  for (int i = 1; i < path.length - 1; i += 2) {
+    LatLng start = LatLng(path[i - 1].latitude, path[i - 1].longitude);
+    LatLng end = LatLng(path[i + 1].latitude, path[i + 1].longitude);
+    
+    futures.add(getDrivingRoute(start, end));
+  }
+  
+  // Wait for all futures to complete
+  try {
+    final results = await Future.wait(futures);
+    return results.expand((segment) => segment).toList();
+  } catch (e) {
+    print('Error fetching polylines: $e');
+    return [];
+  }
+}
