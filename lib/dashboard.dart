@@ -23,10 +23,9 @@ class _DashboardState extends State<Dashboard> {
   final String finalDestinationName = "Final Destination";
   late Map<String, LatLng> locationCoordinates = {}; // Map to store locations and their coordinates.
   List<LatLng> polylinesArray = [];
-  Map<String, Node> allNodes = {};
-  Set<Bus> allBuses = {};
+  Map<int, Node> allNodes = {};
+  Set<Way> allWays = {};
   bool isLoading = true;
-
   // Controllers for the TextFields to show the selected location names.
   TextEditingController currentLocationController = TextEditingController();
   TextEditingController finalDestinationController = TextEditingController();
@@ -157,19 +156,20 @@ class _DashboardState extends State<Dashboard> {
                   const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () async {
+                      await parseJson(allNodes, allWays);
+                      removeRedundantNodes(allNodes,allWays);
                       if (currentLocation != null && finalDestination != null) {
                         setState(() => isLoading = true);
                         print(
                             "Journey started from (${currentLocation!.latitude}, ${currentLocation!.longitude}) to (${finalDestination!.latitude}, ${finalDestination!.longitude})");
-                        parseCSV(allNodes, allBuses);
-                        Node start = Node(name: 'start bus stop', latitude: currentLocation!.latitude, longitude: currentLocation!.longitude);
-                        Node end = Node(name: 'End Bus stop', latitude: finalDestination!.latitude, longitude: finalDestination!.longitude);
-                        print('Start: ${start.toFullString()}\nEnd: ${end.toFullString()}\n');
+                        Node start = Node(id: -1, lat: currentLocation!.latitude, lon: currentLocation!.longitude);
+                        Node end = Node(id: -2, lat: finalDestination!.latitude, lon: finalDestination!.longitude);
+                        print('Start: ${start.toString()}\nEnd: ${end.toString()}\n');
                         //Node start = Node(name: 'Aarubari', latitude: 27.7312633, longitude: 85.3757724);
                         //Node end = Node(name: 'Machha Pokhari', latitude: 27.7353111, longitude: 85.3058395);
-                        start = allNodes[start.toString()]?? findNearestNode(start.latitude, start.longitude, allNodes);
-                        end = allNodes[end.toString()]?? findNearestNode(end.latitude, end.longitude, allNodes);
-                        print('Start: ${start.toFullString()}\nEnd: ${end.toFullString()}\n');
+                        start = findNearestNode(start.lat, start.lon, allNodes);
+                        end = findNearestNode(end.lat, end.lon, allNodes);
+                        print('Start: ${start.toString()}\nEnd: ${end.toString()}\n');
 
                         //Node start = Node(name: 'start bus stop', latitude: currentLocation!.latitude, longitude: currentLocation!.longitude);
                         //Node end = Node(name: 'End Bus stop', latitude: finalDestination!.latitude, longitude: finalDestination!.longitude);
@@ -177,12 +177,15 @@ class _DashboardState extends State<Dashboard> {
                         //end = findNearestNode(end.latitude, end.longitude, allNodes);
                         //List<dynamic> path = findPath(start, end, allNodes, allBuses);
                         try {
-                          final path = findPath(start, end, mapToSet(allNodes));
-                          printPath(path);
-                          final fullPolylines = await osmPolylines(path);
+                          PathWithFareAndDistance path = findShortest(start, end, mapToSet(allNodes));
+                          printPath(path.path);
+                          final fullPolylines = pathToPolyLine(path.path);
                           setState(() {
-                              print('Length of path: ${path.length}');
-                              printPath(path);
+                              print('Length of path: ${path.path.length}');
+                              printPath(path.path);
+                              for(var point in fullPolylines) {
+                                print('${point.latitude}, ${point.longitude}');
+                              }
                               polylinesArray = fullPolylines;
                               print('Length of polylinesArray: ${polylinesArray.length}');
                           });
